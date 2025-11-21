@@ -1,6 +1,6 @@
 # Fluent Bit
 
-<img src="logo.png" width="100">
+<img src="images/logo.png" width="100">
 
 Fluent Bit is an open-source and lightweight log processor and forwarder designed for collecting, parsing, and shipping logs from various sources. It runs with minimal resource usage, making it suitable for high-performance environments, edge devices, and large-scale clusters.
 
@@ -30,7 +30,7 @@ If you need to collect logs directly from the host instead of Docker containers,
 When starting from a Dockerfile, you must mount the correct log path inside the Fluent Bit container.
 Example:
 
-![alt text](single.png)
+![alt text](images/single.png)
 
 
 ## Input Configuration
@@ -44,7 +44,7 @@ Tag — label used in Grafana (example: nginx-error)
 Path — log file path inside the container (example: /var/log/nginx/error.log)
 
 Example:
-![alt text](input.png)
+![alt text](images/input.png)
 
 ## Filter Configuration
 
@@ -56,7 +56,7 @@ Example filter:
 
 This adds metadata specifying the log type (e.g., error, access).
 
-![alt text](image.png)
+![alt text](images/image.png)
 
 ## Output Configuration
 
@@ -106,7 +106,7 @@ container_labels.lua
 
 Only fluent-bit.conf needs adjustment.
 
-![alt text](fluent-bit-conf.png)
+![alt text](images/fluent-bit-conf.png)
 
 Modify the Output section exactly like in the single-host configuration:
 
