@@ -1,0 +1,14 @@
+services:
+  fluent-bit:
+    image: fluent/fluent-bit:4.1.1
+    container_name: fluent-bit
+    volumes:
+      - ./fluent-bit/fluent-bit.conf:/fluent-bit/etc/fluent-bit.conf
+      - ./fluent-bit/parsers.conf:/fluent-bit/etc/parsers.conf
+      - ./fluent-bit/state:/var/fluent-bit/state
+      # - /var/log/nginx:/var/log/nginx # < Location where the log is being generated; you need to specify this for each path created.
+    networks:
+      observability:
+
+networks:
+  observability:

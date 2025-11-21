@@ -1,0 +1,10 @@
+services:
+  fluent-bit:
+    image: fluent/fluent-bit:4.1.1
+    container_name: fluent-bit
+    volumes:
+      - ./fluent-bit/fluent-bit.conf:/fluent-bit/etc/fluent-bit.conf
+      - ./fluent-bit/parsers.conf:/fluent-bit/etc/parsers.conf
+      - ./fluent-bit/container_labels.lua:/fluent-bit/etc/container_labels.lua
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock
