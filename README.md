@@ -1,53 +1,75 @@
-# fluent-bit
+# Fluent Bit
 
 <img src="logo.png" width="100">
 
-Fluent Bit is an open-source and lightweight log processor and forwarder designed for collecting, parsing, and shipping logs from diverse sources. It runs with minimal resource usage, making it suitable for high-performance environments, edge devices, and large-scale clusters.
+Fluent Bit is an open-source and lightweight log processor and forwarder designed for collecting, parsing, and shipping logs from various sources. It runs with minimal resource usage, making it suitable for high-performance environments, edge devices, and large-scale clusters.
 
-Fluent Bit is part of the experience developed by Treasure Data and the Fluentd ecosystem, bringing a more efficient, embedded-friendly engine while keeping compatibility with modern logging pipelines. It delivers flexible input/output plugins, structured log processing, and reliable delivery.
+Fluent Bit is part of the ecosystem developed by Treasure Data and the Fluentd community, delivering a more efficient and embedded-friendly engine while maintaining compatibility with modern logging pipelines. It provides flexible input/output plugins, structured log processing, and reliable delivery.
 
-Fluent Bit is a graduated project under the Cloud Native Computing Foundation (CNCF). If your organization relies on distributed systems, observability pipelines, or container-orchestrated workloads, contributing to CNCF helps influence the direction of cloud-native logging and telemetry. For more on the project’s role and community support, check the CNCF project information.
+Fluent Bit is a graduated project under the Cloud Native Computing Foundation (CNCF). If your organization relies on distributed systems, observability pipelines, or container-orchestrated workloads, contributing to CNCF can help influence the direction of cloud-native logging and telemetry.
 
-----
+---
 
 ## Start
 
-First check that host have docker installed, if not, you need to run these commands:
-<!-- sudo apt update
-curl -fsSL https://get.docker.com | sh && \
-sudo usermod -aG docker ubuntu && \
-newgrp docker && \
-sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose && \
-sudo chmod +x /usr/local/bin/docker-compose && \ -->
+Before anything else, make sure the host has Docker installed.  
+If not, install it:
 
-If you need to get logs about your application inside the host, and not use docker use the "single" dir
+```
+sudo apt update
+curl -fsSL https://get.docker.com | sh
+sudo usermod -aG docker ubuntu
+newgrp docker
+sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" \
+  -o /usr/local/bin/docker-compose
+sudo chmod +x /usr/local/bin/docker-compose
+```
 
-Starting from the dockerfile, you need to indicate the path of the logs in fluent-bit container, follows below is an example
+If you need to collect logs directly from the host instead of Docker containers, use the single/ directory.
+
+When starting from a Dockerfile, you must mount the correct log path inside the Fluent Bit container.
+Example:
 
 ![alt text](single.png)
 
 
-the input is the first step. In this section we detail where fluent-bit needs to listen.
-When you configure, you need to adjust 2 params:
-    Tag               nginx-error ### name of the label that show in grafana
-    Path              /var/log/nginx/error.log ### name of the log, that the fluent-bit see
+## Input Configuration
+
+The Input section defines where Fluent Bit will listen for logs.
+
+Two parameters must be adjusted:
+
+Tag — label used in Grafana (example: nginx-error)
+
+Path — log file path inside the container (example: /var/log/nginx/error.log)
+
+Example:
 ![alt text](input.png)
 
+## Filter Configuration
 
+Example filter:
 [FILTER]
-    Name              record_modifier
-    Match             nginx-error
-    Record            log_type error
+    Name    record_modifier
+    Match   nginx-error
+    Record  log_type error
+
+This adds metadata specifying the log type (e.g., error, access).
+
 ![alt text](image.png)
-Show the level type of log, if are error or access, example.
 
+## Output Configuration
 
-The OUTPUT is the section that forwards all the input after the filter to loki, the config is single, if you use internal configuration set the ip address where loki will run
-If the internal connection is simple, you only need to change the ip where loki runs
-If loki runs in the K8s cluster, you need to change to url path with TLS
+The Output section forwards all logs (after filters) to Loki.
 
+If Loki runs internally: set the internal IP.
 
-#### If loki run in the K8s, you need to change to this OUTPUT example:
+If Loki runs on another EC2 instance: use the EC2 IP.
+
+If Loki runs inside a Kubernetes cluster: use HTTPS + TLS with a proper URL.
+
+### Example output for Loki running in Kubernetes:
+
 [OUTPUT]
     Name              loki
     Match             nginx-access
@@ -61,18 +83,32 @@ If loki runs in the K8s cluster, you need to change to url path with TLS
     Labels            ec2_name=lab-kaua,log_group=nginx_access
 
 
-### Logs inside containers
+## Logs Inside Containers
 
-First check that host have docker installed, if not, you need to run these commands:
-<!-- sudo apt update
-curl -fsSL https://get.docker.com | sh && \
-sudo usermod -aG docker ubuntu && \
-newgrp docker && \
-sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose && \
-sudo chmod +x /usr/local/bin/docker-compose && \ -->
+If you're collecting logs from Docker containers on the host, ensure Docker is installed:
 
-docker-compose, parsers.conf and container_labels.lua don't need adjusts, only fluent-bit.conf
+```
+sudo apt update
+curl -fsSL https://get.docker.com | sh
+sudo usermod -aG docker ubuntu
+newgrp docker
+sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" \
+  -o /usr/local/bin/docker-compose
+sudo chmod +x /usr/local/bin/docker-compose
+```
+You do not need to modify:
+
+```
+docker-compose.yml
+parsers.conf
+container_labels.lua
+```
+
+Only fluent-bit.conf needs adjustment.
 
 ![alt text](fluent-bit-conf.png)
 
-Adjust to client OUTPUT, same scheme of the single, for for Loki on an alb, use TLS, running on an ec2 on the same network, use without
+Modify the Output section exactly like in the single-host configuration:
+
+For Loki behind an ALB: use TLS.
+For Loki running on an EC2 instance inside the same network: TLS is optional.
